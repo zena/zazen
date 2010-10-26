@@ -22,6 +22,36 @@ module Zazen
       str_buf = ""
     }
 
+    action tag {
+      last = replace_op(stack, :tag)
+      last << str_buf
+      str_buf = ""
+    }
+
+    action list {
+      if last.first != :item
+        last = replace_op(stack, :list)
+        last = insert(stack, [:item])
+      else
+        last = insert(stack, [:item])
+      end
+      str_buf = ""
+    }
+
+    action class {
+      last << [:class, str_buf]
+      str_buf = ""
+    }
+
+    action style {
+      last << [:style, str_buf]
+      str_buf = ""
+    }
+
+    action clear {
+      str_buf = ""
+    }
+
     action error {
       p = p - 3
       p = 0 if p < 0

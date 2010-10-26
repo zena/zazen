@@ -2,7 +2,7 @@ require 'test_helper'
 require 'zazen/render/html'
 
 class DummyZazen < Test::Unit::TestCase
-  yamltest :files => ['blocks']
+  yamltest :files => %w{blocks lists}
 
   HTMLZazen = Zazen.parser_with_rules(Zazen::Render::HTML)
 

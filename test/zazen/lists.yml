@@ -1,0 +1,19 @@
+list:
+  src: "* this is a line"
+  sxp: '[:zazen, [:list, [:item, "this is a line"]]]'
+  res: "<ul>\n  <li>this is a line</li>\n</ul>\n\n"
+
+list_many_items:
+  src: "* this is a line\n* another line"
+  sxp: '[:zazen, [:list, [:item, "this is a line"], [:item, "another line"]]]'
+  res: "<ul>\n  <li>this is a line</li>\n  <li>another line</li>\n</ul>\n\n"
+
+list_many_items_break:
+  src: "* this is a line\n* another line\nflop flop\nflip flip"
+  sxp: '[:zazen, [:list, [:item, "this is a line"], [:item, "another line", [:break], "flop flop", [:break], "flip flip"]]]'
+  res: "<ul>\n  <li>this is a line</li>\n  <li>another line<br/>\nflop flop<br/>\nflip flip</li>\n</ul>\n\n"
+
+many_lists:
+  src: "* this is a line\n* another line\n\n* flop\n* flip"
+  sxp: '[:zazen, [:list, [:item, "this is a line"], [:item, "another line"]], [:list, [:item, "flop"], [:item, "flip"]]]'
+  res: "<ul>\n  <li>this is a line</li>\n  <li>another line</li>\n</ul>\n\n<ul>\n  <li>flop</li>\n  <li>flip</li>\n</ul>\n\n"

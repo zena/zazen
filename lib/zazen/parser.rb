@@ -3,8 +3,9 @@ module Zazen
     class << self
       # http://dev.mysql.com/doc/refman/5.1/en/operator-precedence.html
       OP_PRECEDENCE = {
-        :break => 15,
-        :par   => 10,
+        :break => 15, :item => 12,
+        :par   => 10, :list => 10,
+        :style => 8, :tag => 8,
         :zazen => 1,
       }
 
@@ -19,6 +20,14 @@ module Zazen
           stack.push last[-1]
         end
         stack.last
+      end
+
+      # Transform the stack to wrap the last element with an operator:
+      # [:a, b, c] ==> [:x, b, c]
+      def replace_op(stack, new_op)
+        last = stack.last
+        last[0] = new_op
+        last
       end
 
       def insert(stack, arg)

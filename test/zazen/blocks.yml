@@ -22,3 +22,19 @@ two_paragraphs_more_breaks:
   src: "foo bar\n\n\n\nbaz"
   sxp: '[:zazen, [:par, "foo bar"], [:par, "baz"]]'
   res: "<p>foo bar</p>\n\n<p>baz</p>\n\n"
+
+tag:
+  src: "h1. some text"
+  sxp: '[:zazen, [:tag, "h1", "some text"]]'
+  res: "<h1>some text</h1>"
+
+tag_class:
+  src: "h1(foobar). some text"
+  sxp: '[:zazen, [:tag, "h1", [:class, "foobar"], "some text"]]'
+  res: "<h1 class='foobar'>some text</h1>"
+
+tag_style:
+  src: "div{color:green; padding:5px}. some text"
+  sxp: '[:zazen, [:tag, "div", [:style, "color:green; padding:5px"], "some text"]]'
+  res: "<div style='color:green; padding:5px'>some text</div>"
+
