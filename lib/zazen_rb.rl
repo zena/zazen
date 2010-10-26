@@ -7,8 +7,18 @@ module Zazen
       str_buf += fc.chr
     }
 
+    action text {
+      last << str_buf
+      str_buf = ""
+    }
+
+    action break {
+      last << [:break]
+      str_buf = ""
+    }
+
     action par {
-      last << [:par, str_buf]
+      last = insert(stack, [:par])
       str_buf = ""
     }
 

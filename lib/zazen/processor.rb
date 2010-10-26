@@ -23,21 +23,32 @@ module Zazen
       @sxp = Parser.parse(source)
     end
 
-    def process
-      @process ||= begin
-        op = @sxp.shift
-        method = "process_#{op}"
-        if respond_to?(method)
-          #before_process
-          send(method, *sxp[1..-1])
-          #after_process
-        else
-          raise Zazen::SyntaxError.new("Method '#{method}' to handle #{op.inspect} not implemented.")
-        end
+    def render
+      @render ||= begin
+        # before_process
+        res = process([@sxp])
+        # after_process
       end
     end
 
     protected
+
+      def process(elements)
+        elements.map do |sxp|
+          if sxp.kind_of?(String)
+            sxp
+          else
+            op = sxp.shift
+            method = "process_#{op}"
+            if respond_to?(method)
+              send(method, sxp)
+            else
+              raise Zazen::SyntaxError.new("Method '#{method}' to handle #{op.inspect} not implemented.")
+            end
+          end
+        end.join('')
+      end
+
       def before_process
         (self.class.before_process_callbacks || []).each do |callback|
           send(callback)
@@ -51,10 +62,10 @@ module Zazen
       end
 
       def process_zazen(content)
-        if content
-          process(content)
-        else
+        if content.empty?
           ''
+        else
+          process(content)
         end
       end
   end

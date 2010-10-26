@@ -3,9 +3,9 @@ module Zazen
     class << self
       # http://dev.mysql.com/doc/refman/5.1/en/operator-precedence.html
       OP_PRECEDENCE = {
-        :break => 1,
-        :div   => 9,
+        :break => 15,
         :par   => 10,
+        :zazen => 1,
       }
 
       # Transform the stack to wrap the last element with an operator:
