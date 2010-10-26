@@ -1,0 +1,162 @@
+simple:
+  src: "objects where name = 'foo' in site"
+  sxp: '[:query, [:scope, [:filter, [:relation, "objects"], [:"=", [:field, "name"], [:string, "foo"]]], "site"]]'
+  res: "%Q{SELECT objects.* FROM objects WHERE objects.name = 'foo'}"
+
+recipients_where_kpath:
+  src: "recipients where kpath like 'NRCC%'"
+  res: "[%Q{SELECT objects.* FROM links,objects WHERE objects.kpath LIKE 'NRCC%' AND objects.id = links.target_id AND links.relation_id = 4 AND links.source_id = ?}, id]"
+
+hand_made_class_filter:
+  src: "recipients where kpath like 'NRCC%'"
+  res: "[%Q{SELECT objects.* FROM links,objects WHERE objects.kpath LIKE 'NRCC%' AND objects.id = links.target_id AND links.relation_id = 4 AND links.source_id = ?}, id]"
+
+better_class_filter:
+  src: "recipients where class = 'Client'"
+  res: "[%Q{SELECT objects.* FROM links,objects WHERE objects.kpath LIKE ? AND objects.id = links.target_id AND links.relation_id = 4 AND links.source_id = ?}, \"NRCC%\", id]"
+
+like_filter_with_scope:
+  src: "letters where name like 'a%' in site"
+  sxp: '[:query, [:scope, [:filter, [:relation, "letters"], [:like, [:field, "name"], [:string, "a%"]]], "site"]]'
+  res: "%Q{SELECT objects.* FROM objects WHERE objects.name LIKE 'a%' AND objects.kpath LIKE 'NNL%'}"
+
+not_like_with_scope:
+  src: "letters where name not like 'a%' in site"
+  sxp: '[:query, [:scope, [:filter, [:relation, "letters"], [:not, [:like, [:field, "name"], [:string, "a%"]]]], "site"]]'
+  res: "%Q{SELECT objects.* FROM objects WHERE objects.name NOT LIKE 'a%' AND objects.kpath LIKE 'NNL%'}"
+
+letters_group_by_name:
+  sxp: '[:query, [:group, [:relation, "letters"], [:field, "name"]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.kpath LIKE 'NNL%' AND objects.parent_id = ? GROUP BY objects.name}, id]"
+
+recipients_group_by_name:
+  sxp: '[:query, [:group, [:relation, "recipients"], [:field, "name"]]]'
+  res: "[%Q{SELECT objects.* FROM links,objects WHERE objects.id = links.target_id AND links.relation_id = 4 AND links.source_id = ? GROUP BY objects.name}, id]"
+
+custom_query_having:
+  context:
+    custom_query_group: test
+  src: "abc where number > 12"
+  res: "%Q{SELECT a,34 AS number,c FROM test WHERE (34) > 12 AND 3 AND 2 AND 1 ORDER BY a ASC}"
+
+equation_in_filter:
+  src: "objects where event_at > REF_DATE + custom_a months"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:>, [:field, "event_at"], [:+, [:field, "REF_DATE"], [:interval, [:field, "custom_a"], "month"]]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.event_at > now() + INTERVAL objects.custom_a MONTH AND objects.parent_id = ?}, id]"
+
+equation_in_filter_using_gt:
+  src: "objects where event_at gt REF_DATE + custom_a months"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:gt, [:field, "event_at"], [:+, [:field, "REF_DATE"], [:interval, [:field, "custom_a"], "month"]]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.event_at > now() + INTERVAL objects.custom_a MONTH AND objects.parent_id = ?}, id]"
+
+equation_in_filter_using_ge:
+  src: "objects where event_at ge REF_DATE + custom_a months"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:ge, [:field, "event_at"], [:+, [:field, "REF_DATE"], [:interval, [:field, "custom_a"], "month"]]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.event_at >= now() + INTERVAL objects.custom_a MONTH AND objects.parent_id = ?}, id]"
+
+equation_in_filter_using_eq:
+  src: "objects where event_at eq REF_DATE + custom_a months"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:eq, [:field, "event_at"], [:+, [:field, "REF_DATE"], [:interval, [:field, "custom_a"], "month"]]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.event_at = now() + INTERVAL objects.custom_a MONTH AND objects.parent_id = ?}, id]"
+
+equation_in_filter_using_le:
+  src: "objects where event_at le REF_DATE + custom_a months"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:le, [:field, "event_at"], [:+, [:field, "REF_DATE"], [:interval, [:field, "custom_a"], "month"]]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.event_at <= now() + INTERVAL objects.custom_a MONTH AND objects.parent_id = ?}, id]"
+
+equation_in_filter_using_lt:
+  src: "objects where event_at lt REF_DATE + custom_a months"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:lt, [:field, "event_at"], [:+, [:field, "REF_DATE"], [:interval, [:field, "custom_a"], "month"]]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.event_at < now() + INTERVAL objects.custom_a MONTH AND objects.parent_id = ?}, id]"
+
+equation_in_filter_using_ne:
+  src: "objects where event_at ne REF_DATE + custom_a months"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:ne, [:field, "event_at"], [:+, [:field, "REF_DATE"], [:interval, [:field, "custom_a"], "month"]]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.event_at <> now() + INTERVAL objects.custom_a MONTH AND objects.parent_id = ?}, id]"
+
+
+equation_with_date_interval:
+  src: "objects where event_at > '2006-04-01' + 6 week"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:>, [:field, "event_at"], [:+, [:string, "2006-04-01"], [:interval, [:integer, "6"], "week"]]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.event_at > '2006-04-01' + INTERVAL 6 WEEK AND objects.parent_id = ?}, id]"
+
+equation_and_or_par:
+  src: "objects where event_at > '2006-04-01' or name like 'foo%'"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:or, [:>, [:field, "event_at"], [:string, "2006-04-01"]], [:like, [:field, "name"], [:string, "foo%"]]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE (objects.event_at > '2006-04-01' OR objects.name LIKE 'foo%') AND objects.parent_id = ? GROUP BY id}, id]"
+
+or_with_same_tables:
+  src: "objects where age = 5 or age = 7"
+  res: "[%Q{SELECT objects.* FROM idx_nodes AS id1,objects WHERE ((id1.value = 5 AND id1.key = 'age' AND id1.node_id = objects.id) OR (id1.value = 7 AND id1.key = 'age' AND id1.node_id = objects.id)) AND objects.parent_id = ? GROUP BY objects.id}, id]"
+
+or_with_missing_table:
+  src: "objects where age = 5 or 7"
+  res: "[%Q{SELECT objects.* FROM idx_nodes AS id1,objects WHERE ((id1.value = 5 AND id1.key = 'age' AND id1.node_id = objects.id) OR (7 AND id1.id = 0)) AND objects.parent_id = ? GROUP BY objects.id}, id]"
+
+or_different_table:
+  src: "objects where age = 5 or size = 15"
+  res: "[%Q{SELECT objects.* FROM idx_nodes AS id1,objects WHERE ((id1.value = 5 AND id1.key = 'age' AND id1.node_id = objects.id) OR (id1.value = 15 AND id1.key = 'size' AND id1.node_id = objects.id)) AND objects.parent_id = ? GROUP BY objects.id}, id]"
+
+and_with_same_tables:
+  src: "objects where age > 5 and age < 7"
+  res: "[%Q{SELECT objects.* FROM idx_nodes AS id1,objects WHERE id1.value > 5 AND id1.value < 7 AND id1.key = 'age' AND id1.node_id = objects.id AND objects.parent_id = ?}, id]"
+
+and_with_same_tables_different_key:
+  src: "objects where age > 5 and size = 10"
+  res: "[%Q{SELECT objects.* FROM idx_nodes AS id1,idx_nodes AS id2,objects WHERE id1.value > 5 AND id2.value = 10 AND id2.key = 'size' AND id2.node_id = objects.id AND id1.key = 'age' AND id1.node_id = objects.id AND objects.parent_id = ?}, id]"
+
+
+filter_and_order_index:
+  src: "objects where age > 5 order by age asc"
+  res: "[%Q{SELECT objects.* FROM idx_nodes AS id1,objects WHERE id1.value > 5 AND id1.key = 'age' AND id1.node_id = objects.id AND objects.parent_id = ? ORDER BY id1.value ASC}, id]"
+
+order_without_idx_filter:
+  src: "objects order by age asc"
+  res: "[%Q{SELECT objects.* FROM idx_nodes AS id1,objects WHERE id1.key = 'age' AND id1.node_id = objects.id AND objects.parent_id = ? ORDER BY id1.value ASC}, id]"
+
+equation_par:
+  src: "objects where (1 > 2 or 2 > 3) and 4 = 5 "
+  sxp: '[:query, [:filter, [:relation, "objects"], [:and, [:par, [:or, [:>, [:integer, "1"], [:integer, "2"]], [:>, [:integer, "2"], [:integer, "3"]]]], [:"=", [:integer, "4"], [:integer, "5"]]]]]'
+#  res: "[%Q{SELECT objects.* FROM objects WHERE objects.parent_id = ? AND (1 > 2 OR 2 > 3) AND 4 = 5}, id]"
+
+is_not_null:
+  src: "objects where name is not null"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:is, [:field, "name"], [:raw, "not null"]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.name IS NOT NULL AND objects.parent_id = ?}, id]"
+
+is_null:
+  src: "objects where name is null"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:is, [:field, "name"], [:raw, "null"]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE objects.name IS NULL AND objects.parent_id = ?}, id]"
+
+match:
+  src: "objects where fulltext match 'one'"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:match, [:field, "fulltext"], [:string, "one"]]]]'
+
+functions:
+  src: "objects where event_at.year = REF_DATE.year"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:"=", [:function, [:field, "event_at"], [:method, "year"]], [:function, [:field, "REF_DATE"], [:method, "year"]]]]]'
+  res: "[%Q{SELECT objects.* FROM objects WHERE strftime('%Y',objects.event_at) = strftime('%Y',now()) AND objects.parent_id = ?}, id]"
+
+filter_empty_literal:
+  src: "objects where \"\" = ''"
+  sxp: '[:query, [:filter, [:relation, "objects"], [:"=", [:dstring, ""], [:string, ""]]]]'
+  sql: "SELECT objects.* FROM objects WHERE '' = '' AND objects.parent_id = 123"
+
+filter_in_literal:
+  src: "objects where id in (1, 2 , 3,4) in site"
+  sxp: '[:query, [:scope, [:filter, [:relation, "objects"], [:in, [:field, "id"], [:integer, "1"], [:integer, "2"], [:integer, "3"], [:integer, "4"]]], "site"]]'
+  sql: "SELECT objects.* FROM objects WHERE objects.id IN (1,2,3,4)"
+
+filter_in_string:
+  src: "objects where name in ('paul', 'john') in site"
+  sql: "SELECT objects.* FROM objects WHERE objects.name IN ('paul','john')"
+
+filter_in_single_literal:
+  src: "objects where id in (1) in site"
+  sql: "SELECT objects.* FROM objects WHERE objects.id IN (1)"
+
+filter_not_in_literal:
+  src: "objects where id not in (1, 2 , 3,4) in site"
+  sxp: '[:query, [:scope, [:filter, [:relation, "objects"], [:not, [:in, [:field, "id"], [:integer, "1"], [:integer, "2"], [:integer, "3"], [:integer, "4"]]]], "site"]]'
+  sql: "SELECT objects.* FROM objects WHERE objects.id NOT IN (1,2,3,4)"

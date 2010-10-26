@@ -1,0 +1,24 @@
+empty:
+  src: ""
+  sxp: "[:zazen]"
+  res: ""
+
+one_paragraph:
+  src: 'foo bar'
+  sxp: '[:zazen, [:par, "foo bar"]]'
+#  res: "<p>foo bar</p>"
+
+line_break:
+  src: "foo bar\nbaz"
+  sxp: '[:zazen, [:par, "foo bar", [:break], "baz"]]'
+#  res: "<p>foo bar<br/>\nbaz</p>"
+
+two_paragraphs:
+  src: "foo bar\n\nbaz"
+  sxp: '[:zazen, [:par, "foo bar"], [:par, "baz"]]'
+#  res: "<p>foo bar</p>\n\n<p>baz</p>"
+
+two_paragraphs_more_breaks:
+  src: "foo bar\n\n\n\nbaz"
+  sxp: '[:zazen, [:par, "foo bar"], [:par, "baz"]]'
+#  res: "<p>foo bar</p>\n\n<p>baz</p>"
